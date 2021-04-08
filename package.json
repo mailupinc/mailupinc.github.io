@@ -1,0 +1,27 @@
+{
+  "name": "mailupinc.github.io",
+  "version": "0.0.2",
+  "description": "Basic GitHub site for mailupinc",
+  "main": "index.js",
+  "scripts": {
+    "doctoc": "doctoc README.md --title \"**Table of contents**\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mailupinc/mailupinc.github.io.git"
+  },
+  "keywords": [
+    "gh-page",
+    "markdown"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mailupinc/mailupinc.github.io/issues"
+  },
+  "homepage": "https://github.com/mailupinc/mailupinc.github.io#readme",
+  "devDependencies": {
+    "doctoc": "^2.0.0"
+  }
+}
