@@ -4,8 +4,7 @@
 **Table of contents**
 
 - [fp-ts cheatsheet](#fp-ts-cheatsheet)
-  - [pipe](#pipe)
-  - [flow](#flow)
+  - [pipe & flow](#pipe--flow)
   - [Options](#options)
     - [O.map](#omap)
     - [O.fromNullable](#ofromnullable)
@@ -13,9 +12,8 @@
     - [O.chain](#ochain)
   - [Task](#task)
   - [Either](#either)
-    - [E.Either](#eeither)
-    - [E.left and E.right](#eleft-and-eright)
     - [E.map](#emap)
+    - [E.tryCatch](#etrycatch)
   - [TaskEither](#taskeither)
     - [TE.tryCatch](#tetrycatch)
     - [TE.map](#temap)
