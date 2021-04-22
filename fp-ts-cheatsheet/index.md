@@ -25,35 +25,24 @@
 
 # fp-ts cheatsheet
 
-## pipe
+## pipe & flow
 The `pipe` operator can be used to chain a sequence of functions, from left to right.
 
 The return type of a preceding function in the pipeline must match the input type of the subsequent function.
 
-Example:
-```
-import { pipe } from 'fp-ts/lib/function'
-
-function add1(num: number): number {
-  return num + 1
-}
-
-function multiply2(num: number): number {
-  return num * 2
-}
-
-pipe(1, add1, multiply2) // 4
-```
-
-## flow
 The `flow` operator is similar to `pipe` but the first argument is a function and not the starting value of the chain.
 
 Example:
 ```
-import { flow } from 'fp-ts/lib/function'
+import { pipe, flow } from 'fp-ts/lib/function'
 
-pipe(1, flow(add1, multiply2, toString))
-flow(add1, multiply2, toString)(1) // this is equivalent
+const add1 = (x: number) => x + 1
+const multiply2 = (x: number) => x * 2
+
+// The following are equivalent
+pipe(1, add1, multiply2)        // 4
+pipe(1, flow(add1, multiply2))  // 4    
+flow(add1, multiply2)(1)        // 4 
 ```
 
 ## Options
@@ -65,10 +54,19 @@ The Option type is a discriminated union of `None` and `Some`.
 type Option<A> = None | Some<A>
 ```
 
+In most cases, you won't need to use Option; optional chaining is less verbose.  
+But the Option type is more than just checking for null. Option can be used to represent failing operations. And just like how you can lift undefined into an Option, you can also lift an Option into another fp-ts container, like Either.
+
 From now on, the Option container will be referred to using the "O" shorthand.
 Some and None types can be accessed as `O.Some` and `O.None`
 
 Option provide a wide set of tools.
+
+Example:
+```
+O.some(42)    // { _tag: 'Some', value: 42 } 
+O.none        // { _tag: 'None' }
+```
 
 ### O.map
 The map operator allows to access and transform one value from another:
@@ -90,10 +88,16 @@ pipe(
 ### O.fromNullable
 `O.fromNullable` creates a container object tagged as None or Some, depending on the value of its argument being null/undefined or not.
 
+```
+O.fromNullable('Existing')    // { _tag: 'Some', value: 'Existing' } 
+O.fromNullable(null)          // { _tag: 'None' }
+```
+
 ### O.flatten
 The O.flatten operator allows to traverse nested pipes to access an inner property of an object:
 ```
 const foo = { bar: undefined }
+
 // optional chaining:
 pipe(foo, (f) => f?.bar?.buzz) // undefined
 
@@ -135,38 +139,88 @@ pipe(
 Which is very similar to the example provided for O.flatten, but more concise.
 
 ## Task
-A task is a function that returns a promise which is expected to never reject():
+A task is a function that returns a promise which is expected to never reject().
+
+Tasks are expected to always succeed but can fail when an error occurs outside our expectations. In this case, the error is thrown and breaks the functional pipeline. An analogy to this is awaiting a Promise that throws an error without putting a try-catch-finally block in front.    
+**Test your assumptions before using Task.**
+
+A Task is more than a glorified promise; it is also an expression of intent.
+A Promise provides no indication about whether the function can fail. As such, in the imperative model, you are forced to handle these errors using a try-catch-finally block.
 
 ```
 type Task<A> = () => Promise<A>
 ```
 
+Example:
+```
+// The following already implements the Task interface...
+async function boolTask(): Promise<boolean> {
+  try {
+    await asyncFunction()
+    return true
+  } catch (err) {
+    return false
+  }
+}
+
+// ... but we can remove the “Promise” ambiguity by adjusting the syntax. 
+import { Task } from 'fp-ts/lib/Task'
+const boolTask: Task<boolean> = async () => {
+  try {
+    await asyncFunction()
+    return true
+  } catch (err) {
+    return false
+  }
+}
+```
+
 ## Either
- `Either`  is another fp-ts container (just like Option) that's basically  a *synchronous* operation that can succeed or fail.
+`Either` is another fp-ts container (just like Option) that's basically a *synchronous* operation that can succeed or fail.
+Much like Option, where it is `Some` or `None`, the Either type is either `Right` or `Left`. Right represents success and Left represents failure.
 
 ```
 type Either<E, A> = Left<E> | Right<A>
 ```
-Eithers are very useful for catching error scenarios in FP. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.
 
-### E.Either
-The E.Either generic type expresses the Either concept and it's used like this:
+Eithers are very useful for catching error scenarios in FP. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.  
+We need the Eithers because we cannot break pipelines by throwing errors.
 
+Example:  
 ```
-const passwordMinLenght: Either<ShortPasswordError, Password> = ...
-```
-
-### E.left and E.right
-It's the error branch of an Either. Implementing a check in FP and returning E.left basically means "Error!":
-```
-const passwordMinLenght = (pass, minLen) => (
+const passwordMinLenght = (pass: string, minLen: number): E.Either<Error, string> => (
   (pass.length < minLen)
-    ? E.left(new Error('Password too short')
+    ? E.left(new Error('Password too short'))
     : E.right(pass)
 )
+
+passwordMinLenght('test', 1)    // {_tag: "Right", right: "test"}
+passwordMinLenght('test', 8)    // {_tag: "Left", left: Error}
 ```
+
 ### E.map
-Similar to O.map but applied to an Either container.
+Similar to `O.map` but applied to an Either container.
+
+
+### E.tryCatch
+Constructs a new Either from a function that might throw.
+
+Example:
+```
+const myUnsafeFunction = (x: number) => {
+  if (x > 10) return x
+  throw new Error()
+}
+
+const safeFunction = (x: number) =>
+  E.tryCatch(
+    () => myUnsafeFunction(x),
+    () => new Error('Error!!!')
+  )
+
+safeFunction(20)  // {_tag: "Right", right: 20}
+safeFunction(2)   // {_tag: "Left", left: Error}
+```
 
 ## TaskEither
 `TaskEither` merges together the concepts of Taks and Either, applied to the asynchronous scenarios, e.g. network calls of an application.
