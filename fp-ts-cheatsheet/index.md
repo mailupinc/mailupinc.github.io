@@ -50,7 +50,7 @@ The return type of a preceding function in the pipeline must match the input typ
 The `flow` operator is similar to `pipe` but the first argument is a function and not the starting value of the chain.
 
 Example:
-```
+```typescript
 import { pipe, flow } from 'fp-ts/lib/function'
 
 const add1 = (x: number) => x + 1
@@ -67,7 +67,7 @@ flow(add1, multiply2)(1)        // 4
 
 The Option type is a discriminated union of `None` and `Some`.
 
-```
+```typescript
 type Option<A> = None | Some<A>
 ```
 
@@ -80,21 +80,21 @@ Some and None types can be accessed as `O.Some` and `O.None`
 Option provide a wide set of tools.
 
 Example:
-```
+```typescript
 O.some(42)    // { _tag: 'Some', value: 42 } 
 O.none        // { _tag: 'None' }
 ```
 
 ### O.map
 The map operator allows to access and transform one value from another:
-```
+```typescript
 pipe(
   { bar: 'hello' },
   O.fromNullable,
   O.map(({ bar }) => bar),
 ) // { _tag: 'Some', value: 'hello' }
 ```
-```
+```typescript
 pipe(
   undefined,
   O.fromNullable,
@@ -105,14 +105,14 @@ pipe(
 ### O.fromNullable
 `O.fromNullable` creates a container object tagged as None or Some, depending on the value of its argument being null/undefined or not.
 
-```
+```typescript
 O.fromNullable('Existing')    // { _tag: 'Some', value: 'Existing' } 
 O.fromNullable(null)          // { _tag: 'None' }
 ```
 
 ### O.flatten
 The O.flatten operator allows to traverse nested pipes to access an inner property of an object:
-```
+```typescript
 const foo = { bar: undefined }
 
 // optional chaining:
@@ -140,7 +140,7 @@ Without the O.flatten, the result would be:
 
 ### O.chain
 The O.chain operator implements a flatmap, merging the concepts behind  O.map and O.flatten:
-```
+```typescript
 pipe(
   foo,
   O.fromNullable,
@@ -160,7 +160,7 @@ Which is very similar to the example provided for O.flatten, but more concise.
 Extracts the value out of the structure, if it exists. Otherwise returns the given default value.
 
 Example:
-```
+```typescript
 const sillyFunction = (x?: string) => pipe(
   O.fromNullable(x),
   O.getOrElse(() => "error")
@@ -179,12 +179,12 @@ Tasks are expected to always succeed but can fail when an error occurs outside o
 A Task is more than a glorified promise; it is also an expression of intent.
 A Promise provides no indication about whether the function can fail. As such, in the imperative model, you are forced to handle these errors using a try-catch-finally block.
 
-```
+```typescript
 type Task<A> = () => Promise<A>
 ```
 
 Example:
-```
+```typescript
 // The following already implements the Task interface...
 async function boolTask(): Promise<boolean> {
   try {
@@ -211,7 +211,7 @@ const boolTask: Task<boolean> = async () => {
 `Either` is another fp-ts container (just like Option) that's basically a *synchronous* operation that can succeed or fail.
 Much like Option, where it is `Some` or `None`, the Either type is either `Right` or `Left`. Right represents success and Left represents failure.
 
-```
+```typescript
 type Either<E, A> = Left<E> | Right<A>
 ```
 
@@ -219,7 +219,7 @@ Eithers are very useful for catching error scenarios in FP. With an analogy, the
 We need the Eithers because we cannot break pipelines by throwing errors.
 
 Example:  
-```
+```typescript
 const passwordMinLenght = (pass: string, minLen: number): E.Either<Error, string> => (
   (pass.length < minLen)
     ? E.left(new Error('Password too short'))
@@ -238,7 +238,7 @@ Similar to `O.map` but applied to an Either container.
 Constructs a new Either from a function that might throw.
 
 Example:
-```
+```typescript
 const myUnsafeFunction = (x: number) => {
   if (x > 10) return x
   throw new Error()
@@ -257,7 +257,7 @@ safeFunction(2)   // {_tag: "Left", left: Error}
 ### E.fromOption
 Construct a new Either from an Option.
 
-```
+```typescript
 pipe(
   O.some(42),
   E.fromOption(() => 'error')
@@ -272,7 +272,7 @@ pipe(
 ### E.fromPredicate
 Construct a new Either based on the given predicate.
 
-```
+```typescript
 const check = (
   E.fromPredicate(
     (n: number) => n > 0,
@@ -293,7 +293,7 @@ Indeed, in fp-ts there is TE.tryCatch.
 
 ### TE.tryCatch
 
-```
+```typescript
 // ES6:
 fetch('https://example.com/api/v1/users')
   .then(res => ...)
@@ -314,7 +314,7 @@ Same concept of O.map and E.map, only applied to TaskEithers
 
 ### TE.fold
 Placed at the end of a TaskEither pipe, in a condition of success, returns a Task.
-```
+```typescript
 import {
   absurd,
   constVoid,
@@ -345,7 +345,7 @@ Instances must satisfy the following laws:
 
 
 ### Primitive equality
-```
+```typescript
 import { eq } from "fp-ts"
 
 eq.eqBoolean.equals(true, true)                                    // true
@@ -355,7 +355,7 @@ eq.eqString.equals("Cyndi", "Cyndi")                               // true
 ```
 
 ### Compare structures
-```
+```typescript
 type Point = {
   x: number
   y: number
@@ -368,7 +368,7 @@ const eqPoint: eq.Eq<Point> = eq.getStructEq({
 
 eqPoint.equals({ x: 0, y: 0 }, { x: 0, y: 0 })  // true
 ```
-```
+```typescript
 type Point = {
   x: number
   y: number
@@ -396,14 +396,14 @@ eqVector.equals(
 ```
 
 ### Compare arrays
-```
+```typescript
 import { array, eq } from "fp-ts"
 
 const eqArrayOfStrings = array.getEq(eq.eqString)
 
 eqArrayOfStrings.equals(["Time", "After", "Time"], ["Time", "After", "Time"]) // true
 ```
-```
+```typescript
 import { array, eq } from "fp-ts";
 
 type Point = {
@@ -431,7 +431,7 @@ eqArrayOfPoints.equals(
 ```
 
 ### Custom definitions
-```
+```typescript
 import { eq } from "fp-ts"
 
 type User = {
@@ -449,7 +449,7 @@ eqUserId.equals({ userId: 1, name: "Giulio" }, { userId: 2, name: "Giulio" })   
 Many data types provide Eq instances.
 
 #### Option
-```
+```typescript
 import { eq, option } from "fp-ts"
 
 const E = option.getEq(eq.eqNumber)
@@ -460,7 +460,7 @@ E.equals(option.none, option.none)        // true
 ```
 
 #### Either
-```
+```typescript
 import { either, eq } from "fp-ts"
 
 const E = either.getEq(eq.eqString, eq.eqNumber)
@@ -481,7 +481,7 @@ Note that all `Ord` instances also define the equals method, because it is a pre
 
 
 ### Primitive comparison
-```
+```typescript
 import { ord } from "fp-ts"
 
 ord.ordNumber.compare(4, 5)   // -1
@@ -496,7 +496,7 @@ ord.ordBoolean.equals(false, false)  // true
 ```
 
 ### Custom comparison
-```
+```typescript
 const strlenOrd = ord.fromCompare((a: string, b: string) =>
   a.length < b.length ? -1 : a.length > b.length ? 1 : 0
 )
@@ -504,7 +504,7 @@ strlenOrd.compare("Hi", "there")          // -1
 strlenOrd.compare("Goodbye", "friend")    // 1
 ```
 But most of the time, you can achieve the same result in a simpler way with contramap:
-```
+```typescript
 const strlenOrd = ord.contramap((s: string) => s.length)(ord.ordNumber)
 strlenOrd.compare("Hi", "there")           // -1
 strlenOrd.compare("Goodbye", "friend")     // 1
@@ -512,7 +512,7 @@ strlenOrd.compare("Goodbye", "friend")     // 1
 
 ### Min, max, clamp, lt, geq, between
 Take the smaller (min) or larger (max) element of two, or take the one closest to the given boundaries (clamp).
-```
+```typescript
 ord.min(ord.ordNumber)(5, 2)                      // 2
 ord.max(ord.ordNumber)(5, 2)                      // 5
 
@@ -529,13 +529,13 @@ ord.between(ord.ordNumber)(6, 9)(12)              // false
 ```
 
 ### Sort an array
-```
+```typescript
 import { array, ord } from "fp-ts"
 
 const sortByNumber = array.sort(ord.ordNumber)
 sortByNumber([3, 1, 2])                           // [1, 2, 3]
 ```
-```
+```typescript
 import { array, ord } from "fp-ts"
 
 type Planet = {
@@ -566,7 +566,7 @@ console.log(array.sort(diameterOrd)(planets))   // Mercury, Mars, Venus, Earth, 
 Many data types provide Ord instances.
 
 #### Option
-```
+```typescript
 import { option, ord } from "fp-ts"
 
 const O = option.getOrd(ord.ordNumber) 
@@ -578,7 +578,7 @@ O.compare(option.some(1), option.some(1))   // 0
 ```
 
 #### Tuple
-```
+```typescript
 import { ord } from "fp-ts"
 
 const O = ord.getTupleOrd(ord.ordString, ord.ordNumber)
