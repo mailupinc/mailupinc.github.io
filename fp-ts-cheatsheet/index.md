@@ -10,10 +10,13 @@
     - [O.fromNullable](#ofromnullable)
     - [O.flatten](#oflatten)
     - [O.chain](#ochain)
+    - [O.getOrElse](#ogetorelse)
   - [Task](#task)
   - [Either](#either)
     - [E.map](#emap)
     - [E.tryCatch](#etrycatch)
+    - [E.fromOption](#efromoption)
+    - [E.fromPredicate](#efrompredicate)
   - [TaskEither](#taskeither)
     - [TE.tryCatch](#tetrycatch)
     - [TE.map](#temap)
@@ -135,6 +138,21 @@ pipe(
 ) // { _tag: 'None' }
 ```
 Which is very similar to the example provided for O.flatten, but more concise.
+
+
+### O.getOrElse
+Extracts the value out of the structure, if it exists. Otherwise returns the given default value.
+
+Example:
+```
+const sillyFunction = (x?: string) => pipe(
+  O.fromNullable(x),
+  O.getOrElse(() => "error")
+)
+
+sillyFunction(undefined)  // error
+sillyFunction("ok")       // ok
+```
 
 ## Task
 A task is a function that returns a promise which is expected to never reject().
