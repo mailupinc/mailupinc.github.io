@@ -220,6 +220,37 @@ safeFunction(20)  // {_tag: "Right", right: 20}
 safeFunction(2)   // {_tag: "Left", left: Error}
 ```
 
+### E.fromOption
+Construct a new Either from an Option.
+
+```
+pipe(
+  O.some(42),
+  E.fromOption(() => 'error')
+)   // {_tag: "Right", right: 42}
+
+pipe(
+  O.none,
+  E.fromOption(() => 'error')
+)   // {_tag: "Left", left: "error"}
+```
+
+### E.fromPredicate
+Construct a new Either based on the given predicate.
+
+```
+const check = (
+  E.fromPredicate(
+    (n: number) => n > 0,
+    () => 'error'
+  )
+)
+
+check(42) // {_tag: "Right", right: 42}
+check(-1) // {_tag: "Left", left: "error"}
+```
+
+
 ## TaskEither
 `TaskEither` merges together the concepts of Taks and Either, applied to the asynchronous scenarios, e.g. network calls of an application.
 
