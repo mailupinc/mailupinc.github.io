@@ -284,6 +284,26 @@ check(42) // {_tag: "Right", right: 42}
 check(-1) // {_tag: "Left", left: "error"}
 ```
 
+### E.fold / E.match
+Takes two functions and an Either value, if the value is a `Left` the inner value is applied to the first function, if the value is a `Right` the inner value is applied to the second function.
+
+Example:
+```typescript
+const onLeft = (s: string) => `Error ${s}`
+const onRight = (s: string) => `Success ${s}`
+
+pipe(
+  E.right("42"),
+  E.fold(onLeft, onRight)
+) // Success 42
+
+pipe(
+  E.left("-1"),
+  E.fold(onLeft, onRight)
+) // Error -1 
+```
+
+
 
 ## TaskEither
 `TaskEither` merges together the concepts of Taks and Either, applied to the asynchronous scenarios, e.g. network calls of an application.
@@ -585,5 +605,39 @@ const O = ord.getTupleOrd(ord.ordString, ord.ordNumber)
 O.compare(["A", 10], ["A", 12])    // -1
 O.compare(["A", 10], ["A", 4])     // 1
 O.compare(["A", 10], ["B", 4])     // -1
+```
+
+
+## IO
+IO<A> represents a non-deterministic synchronous computation that can cause side effects, yields a value of type A and never fails.
+
+Example:
+```typescript
+import { io } from 'fp-ts'
+
+const random: io.IO<number> = () => Math.random()
+random() // random number
+```
+```typescript
+const getItem = (key: string): io.IO<option.Option<string>> => {
+  return () => option.fromNullable(localStorage.getItem(key))  // Synchronous side effect
+}
+```
+
+
+## IOEither
+IOEither<E, A> represents a synchronous computation that either yields a value of type A or fails yielding an error of type E.
+
+Example:
+```typescript
+import * as fs from 'fs'
+import { ioEither } from 'fp-ts'
+
+const readFileSync = (path: string): ioEither.IOEither<Error, string> => {
+  return ioEither.tryCatch(
+    () => fs.readFileSync(path, "utf8"),
+    (reason) => new Error(String(reason))
+  ) // Synchronous side effect
+}
 ```
 
