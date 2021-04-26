@@ -8,6 +8,7 @@
   - [Options](#options)
     - [O.map](#omap)
     - [O.fromNullable](#ofromnullable)
+    - [O.fromPredicate](#ofrompredicate)
     - [O.flatten](#oflatten)
     - [O.chain](#ochain)
     - [O.getOrElse](#ogetorelse)
@@ -17,6 +18,7 @@
     - [E.tryCatch](#etrycatch)
     - [E.fromOption](#efromoption)
     - [E.fromPredicate](#efrompredicate)
+    - [E.fold / E.match](#efold--ematch)
   - [TaskEither](#taskeither)
     - [TE.tryCatch](#tetrycatch)
     - [TE.map](#temap)
@@ -37,6 +39,8 @@
     - [More Ord instances](#more-ord-instances)
       - [Option](#option-1)
       - [Tuple](#tuple)
+  - [IO](#io)
+  - [IOEither](#ioeither)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -109,6 +113,9 @@ pipe(
 O.fromNullable('Existing')    // { _tag: 'Some', value: 'Existing' } 
 O.fromNullable(null)          // { _tag: 'None' }
 ```
+
+### O.fromPredicate
+Similar to [E.fromPredicate](#efrompredicate) but it builds an Option object instead.
 
 ### O.flatten
 The O.flatten operator allows to traverse nested pipes to access an inner property of an object:
