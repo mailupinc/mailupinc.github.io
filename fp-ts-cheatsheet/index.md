@@ -9,6 +9,7 @@
     - [O.map](#omap)
     - [O.fromNullable](#ofromnullable)
     - [O.fromPredicate](#ofrompredicate)
+    - [O.fold / O.match](#ofold--omatch)
     - [O.flatten](#oflatten)
     - [O.chain](#ochain)
     - [O.getOrElse](#ogetorelse)
@@ -116,6 +117,36 @@ O.fromNullable(null)          // { _tag: 'None' }
 
 ### O.fromPredicate
 Similar to [E.fromPredicate](#efrompredicate) but it builds an Option object instead.
+
+```typescript
+const isUnderage = (x: { age: number }) =>
+  pipe(
+    x,
+    O.fromPredicate(({ age }) => age < 18)
+  )
+
+isUnderage({ age: 30 }) // { _tag: "None" }
+isUnderage({ age: 17 }) // { _tag: "Some", value: { age: 17 } }
+```
+
+### O.fold / O.match
+Takes a (lazy) default value, a function, and an Option value, if the Option value is None the default value is returned, otherwise the function is applied to the value inside the Some and the result is returned.
+
+```typescript
+const isUnderage = (x: { age: number }) =>
+  pipe(
+    x,
+    O.fromPredicate(({ age }) => age < 18),
+    O.fold(
+      () => "Adult",
+      () => "Underage"
+    )
+  )
+
+isUnderage({ age: 30 }) // "Adult"
+isUnderage({ age: 15 }) // "Underage"
+```
+
 
 ### O.flatten
 The O.flatten operator allows to traverse nested pipes to access an inner property of an object:
