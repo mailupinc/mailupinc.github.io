@@ -12,6 +12,7 @@
     - [O.fold / O.match](#ofold--omatch)
     - [O.flatten](#oflatten)
     - [O.chain](#ochain)
+    - [O.alt](#oalt)
     - [O.getOrElse](#ogetorelse)
   - [Task](#task)
   - [Either](#either)
@@ -43,6 +44,7 @@
   - [IO](#io)
   - [IOEither](#ioeither)
   - [Misc](#misc)
+  - [SequenceT](#sequencet)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -193,6 +195,31 @@ pipe(
 ) // { _tag: 'None' }
 ```
 Which is very similar to the example provided for O.flatten, but more concise.
+
+
+### O.alt
+Returns the left-most non-`None` value.  
+It can be used as a logical 'OR'.  
+
+```typescript
+const isUppercase = (x: string) => x.toUpperCase() === x ? O.of(x) : O.none
+const isLowercase = (x: string) => x.toLowerCase() === x ? O.of(x) : O.none
+
+const checkCase = (x: string) => {
+  return pipe(
+    isUppercase(x),
+    O.alt(() => isLowercase(x)),
+    O.fold(
+      () => "It's camelcase",
+      () => "It's lowercase or uppercase"
+    ) 
+  )
+}
+ 
+checkCase("thisislower")   // It's lowercase or uppercase
+checkCase("THISISUPPER")   // It's lowercase or uppercase
+checkCase("CamelCase")     // It's camelcase
+```
 
 
 ### O.getOrElse
@@ -684,3 +711,6 @@ const readFileSync = (path: string): ioEither.IOEither<Error, string> => {
 ```typescript
 import { constVoid } from "fp-ts/function" // A thunk that returns always void.
 ```
+
+## SequenceT
+TODO
