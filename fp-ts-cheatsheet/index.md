@@ -42,6 +42,7 @@
       - [Tuple](#tuple)
   - [IO](#io)
   - [IOEither](#ioeither)
+  - [Misc](#misc)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -679,3 +680,7 @@ const readFileSync = (path: string): ioEither.IOEither<Error, string> => {
 }
 ```
 
+## Misc
+```typescript
+import { constVoid } from "fp-ts/function" // A thunk that returns always void.
+```
