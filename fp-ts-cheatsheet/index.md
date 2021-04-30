@@ -195,6 +195,7 @@ pipe(
 ) // { _tag: 'None' }
 ```
 Which is very similar to the example provided for O.flatten, but more concise.
+It can be used as a logical 'AND'.  
 
 
 ### O.alt
