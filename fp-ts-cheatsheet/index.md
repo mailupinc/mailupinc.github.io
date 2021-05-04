@@ -282,7 +282,7 @@ Much like Option, where it is `Some` or `None`, the Either type is either `Right
 type Either<E, A> = Left<E> | Right<A>
 ```
 
-Eithers are very useful for catching error scenarios in FP. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.  
+Eithers are very useful for catching error scenarios in FP, and have a clue as to why our program has derailed. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.  
 We need the Eithers because we cannot break pipelines by throwing errors.
 
 Example:  
