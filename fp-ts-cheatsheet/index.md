@@ -241,7 +241,7 @@ sillyFunction("ok")       // ok
 A task is a function that returns a promise which is expected to never reject().
 
 Tasks are expected to always succeed but can fail when an error occurs outside our expectations. In this case, the error is thrown and breaks the functional pipeline. An analogy to this is awaiting a Promise that throws an error without putting a try-catch-finally block in front.    
-**Test your assumptions before using Task.**
+**Remember to test your assumptions before using Task.**
 
 A Task is more than a glorified promise; it is also an expression of intent.
 A Promise provides no indication about whether the function can fail. As such, in the imperative model, you are forced to handle these errors using a try-catch-finally block.
@@ -283,7 +283,9 @@ type Either<E, A> = Left<E> | Right<A>
 ```
 
 Eithers are very useful for catching error scenarios in FP, and have a clue as to why our program has derailed. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.  
-We need the Eithers because we cannot break pipelines by throwing errors.
+We need the Eithers because we cannot break pipelines by throwing errors.    
+Either is great for casual errors like validation as well as more serious, errors like missing files or broken sockets.
+It also captures logical disjunction (a.k.a ||) in a type.
 
 Example:  
 ```typescript
@@ -394,6 +396,22 @@ const ok = await pipe(
   ),
   TE.map((resp) => resp.data),
 )()
+```
+```typescript
+const curried = (url: string) => async () => {
+  const result = await pipe(
+    TE.tryCatch(
+      () => fetch(url),
+      (reason) => new Error(`${reason}`)
+    ),
+    TE.map((resp) => resp.status),
+    invokeTask => invokeTask()
+  )
+  console.log(result)
+} 
+
+setTimeout(curried("http://not-existing"), 1000)     // {_tag: "Left", left: Error}
+setTimeout(curried("https://httpstat.us/200"), 2000) // {_tag: "Right", right: 200}
 ```
 
 ### TE.map
