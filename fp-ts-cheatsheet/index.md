@@ -45,6 +45,9 @@
   - [IOEither](#ioeither)
   - [Misc](#misc)
   - [SequenceT](#sequencet)
+      - [Option](#option-2)
+      - [Task](#task-1)
+      - [TaskEither](#taskeither-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
