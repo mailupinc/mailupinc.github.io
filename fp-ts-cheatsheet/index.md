@@ -732,4 +732,34 @@ import { constVoid } from "fp-ts/function" // A thunk that returns always void.
 ```
 
 ## SequenceT
-TODO
+Tuple sequencing, i.e., take a tuple of monadic actions and does them from left-to-right, returning the resulting tuple.
+
+Example:
+```typescript
+import { sequenceT } from 'fp-ts/lib/Apply'
+import * as O from 'fp-ts/lib/Option'
+import { constVoid } from 'fp-ts/lib/function'
+
+const printInfo = (title?: string, description?: string) => pipe(
+    sequenceT(O.option)(O.fromNullable(title), O.fromNullable(description)),
+    O.fold(
+      constVoid,
+      ([passedTitle, passedDescription]) => console.log(`Title: ${passedTitle}. Description: ${passedDescription}`),
+    ),
+  )
+
+printInfo()
+```
+OR
+
+```typescript
+import { sequenceT } from 'fp-ts/lib/Apply'
+import * as TE from 'fp-ts/lib/TaskEither'
+
+pipe(
+  sequenceT(TE.taskEither)(TE.left("no bad"), TE.right("tim")),
+  TE.map(([answer, name]) => console.log(`Hello ${name}! The answer you're looking for is ${answer}`)),
+  TE.mapLeft(console.error)
+)()
+
+```
