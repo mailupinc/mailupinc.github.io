@@ -18,6 +18,7 @@
   - [Either](#either)
     - [E.map](#emap)
     - [E.tryCatch](#etrycatch)
+    - [E.fromNullable](#efromnullable)
     - [E.fromOption](#efromoption)
     - [E.fromPredicate](#efrompredicate)
     - [E.fold / E.match](#efold--ematch)
@@ -324,6 +325,21 @@ const safeFunction = (x: number) =>
 
 safeFunction(20)  // {_tag: "Right", right: 20}
 safeFunction(2)   // {_tag: "Left", left: Error}
+```
+
+### E.fromNullable
+Construct a new Either from a nullable object.
+
+```typescript
+pipe(
+  null,
+  E.fromNullable(new Error('The object is null')),
+)   // {_tag: "Left", left: Error}
+
+pipe(
+  42,
+  E.fromNullable(new Error('The object is null')),
+)   // {_tag: "Right", right: 42}
 ```
 
 ### E.fromOption
