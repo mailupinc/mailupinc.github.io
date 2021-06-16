@@ -45,6 +45,7 @@
   - [IO](#io)
   - [IOEither](#ioeither)
   - [Misc](#misc)
+    - [MonoidAny & MonoidAll](#monoidany--monoidall)
   - [SequenceT](#sequencet)
       - [Option](#option-2)
       - [Task](#task-1)
@@ -748,6 +749,25 @@ const readFileSync = (path: string): ioEither.IOEither<Error, string> => {
 ## Misc
 ```typescript
 import { constVoid } from "fp-ts/function" // A thunk that returns always void.
+```
+
+### MonoidAny & MonoidAll
+```typescript
+import { MonoidAny, MonoidAll } from 'fp-ts/lib/boolean'
+
+const heightAndWidthOk = (image): boolean => MonoidAll.concat(
+  image.height >= 42,
+  image.width >= 42,
+)
+heightAndWidthOk({height: 10, width: 100}) // false
+heightAndWidthOk({height: 100, width: 100}) // true
+
+const heightOrWidthOk = (image): boolean => MonoidAny.concat(
+  image.height >= 42,
+  image.width >= 42,
+)
+heightOrWidthOk({height: 10, width: 10}) // false
+heightOrWidthOk({height: 10, width: 100}) // true
 ```
 
 ## SequenceT

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "doctoc": "doctoc README.md --title \"**Table of contents**\"",
+    "doctoc-fpts": "doctoc fp-ts-cheatsheet/index.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
