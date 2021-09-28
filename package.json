@@ -4,8 +4,9 @@
   "description": "Basic GitHub site for mailupinc",
   "main": "index.js",
   "scripts": {
-    "doctoc": "doctoc README.md --title \"**Table of contents**\"",
+    "doctoc": "doctoc README.md --title \"**Table of contents**\" && yarn doctoc-fpts && yarn doctoc-naming-conventions",
     "doctoc-fpts": "doctoc fp-ts-cheatsheet/index.md",
+    "doctoc-naming-conventions": "doctoc naming-conventions/index.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
