@@ -11,9 +11,6 @@
    - [functions](#functions)
 
 
-
-
-
 # naming-conventions cheatsheet
 
 ## react component
@@ -126,6 +123,8 @@ export default BaseComponent
 - if it's based on the `O.Option` fp-ts package should start with the `maybe` word
 
 ```typescript
+import * as O from 'fp-ts/lib/Option'
+
 const firstname = 'Valentino Rossi'
 const roleCheckerRegex = /^\d{3}-\d{2}-\d{4}$/
 
@@ -137,6 +136,7 @@ const maybeUser: O.Option<IUser> = O.some({ firstname: 'Valentino', lastname: 'R
 - if it's based on the `E.Either` fp-ts package should start with the `either` word
 
 ```typescript
+import * as E from 'fp-ts/lib/Either'
 
  const eitherMaxLength = (email: string) => (email.length > 100 ? E.left('Error max length') : E.right(email))
 ```
