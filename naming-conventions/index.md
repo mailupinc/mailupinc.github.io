@@ -103,19 +103,16 @@ import React, { FC } from 'react'
 import styles from './BaseComponent.module.scss'
 
 export interface IBaseComponent {
-  label: string
-  icon: React.ReactNode
+  title: string
+  description: string
 }
 
 const BaseComponent : FC<IBaseComponent> = ({
-  label, icon, children
+  title, description
 }) => (
-  <div>
-    <div>
-      <div>{icon}</div>
-      <span>{label}</span>
-    </div>
-    <div>{children}</div>
+  <div className={styles.Container}>
+    <span className={styles.Title}>{title}</span>
+    <span className={styles.Description}>{description}</span>
   </div>
 )
 
