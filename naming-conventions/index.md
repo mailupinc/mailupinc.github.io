@@ -8,6 +8,7 @@
    - [interface](#interface)
    - [scss](#scss)
    - [variables](#variables)
+   - [functions](#functions)
 
 
 
@@ -129,4 +130,13 @@ const firstname = 'Valentino Rossi'
 const roleCheckerRegex = /^\d{3}-\d{2}-\d{4}$/
 
 const maybeUser: O.Option<IUser> = O.some({ firstname: 'Valentino', lastname: 'Rossi' }) 
+```
+
+## functions
+
+- if it's based on the `E.Either` fp-ts package should start with the `either` word
+
+```typescript
+
+ const eitherMaxLength = (email: string) => (email.length > 100 ? E.left('Error max length') : E.right(email))
 ```
