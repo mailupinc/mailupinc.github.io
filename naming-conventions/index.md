@@ -7,8 +7,7 @@
    - [react-component](#react-component)
    - [interface](#interface)
    - [scss](#scss)
-
-
+   - [variables](#variables)
 
 
 
@@ -117,4 +116,17 @@ const BaseComponent : FC<IBaseComponent> = ({
 )
 
 export default BaseComponent
+```
+
+## variables
+
+- start with lowercase
+- use camelCase
+- if it's based on the `O.Option` fp-ts package should start with the `maybe` word
+
+```typescript
+const firstname = 'Valentino Rossi'
+const roleCheckerRegex = /^\d{3}-\d{2}-\d{4}$/
+
+const maybeUser: O.Option<IUser> = O.some({ firstname: 'Valentino', lastname: 'Rossi' }) 
 ```
