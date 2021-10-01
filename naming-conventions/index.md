@@ -7,7 +7,7 @@
    - [react-component](#react-component)
    - [interface](#interface)
    - [scss](#scss)
-      * [unit-of-measures] (#unit-of-measures)
+      - [unit-of-measures](#unit-of-measures)
    - [variables](#variables)
    - [functions](#functions)
    - [fp-ts-pipes](#fp-ts-pipes)
@@ -119,14 +119,15 @@ const BaseComponent = ({
 
 export default BaseComponent
 ```
-  ### unit of measures
 
-  We usually use `rem` for everyting except for the following cases where `px` can be used: 
-  
-  - border-radius
-  - border-size
-  - font-size 
-  - box-shadow 
+### unit of measures
+
+We usually use `rem` for everyting except for the following cases where `px` can be used: 
+
+- border-radius
+- border-size
+- font-size 
+- box-shadow 
 
 ## variables
 
