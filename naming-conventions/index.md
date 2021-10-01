@@ -127,7 +127,8 @@ We usually use `rem` for everyting except for the following cases where `px` can
 - border-radius
 - border-size
 - font-size 
-- box-shadow 
+- box-shadow
+- outline
 
 ## variables
 
