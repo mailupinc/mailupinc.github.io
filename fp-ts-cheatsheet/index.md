@@ -5,15 +5,19 @@
 
 - [fp-ts cheatsheet](#fp-ts-cheatsheet)
   - [pipe & flow](#pipe--flow)
+      - [When to use flow over pipe](#when-to-use-flow-over-pipe)
   - [Options](#options)
-    - [O.map](#omap)
     - [O.fromNullable](#ofromnullable)
     - [O.fromPredicate](#ofrompredicate)
-    - [O.fold / O.match](#ofold--omatch)
+    - [O.fromEither](#ofromeither)
+    - [O.map](#omap)
     - [O.flatten](#oflatten)
     - [O.chain](#ochain)
+    - [O.fold / O.match](#ofold--omatch)
     - [O.alt](#oalt)
+    - [O.toNullable / O.toUndefined](#otonullable--otoundefined)
     - [O.getOrElse](#ogetorelse)
+    - [O.isNone / O.isSome](#oisnone--oissome)
   - [Task](#task)
   - [Either](#either)
     - [E.map](#emap)
@@ -127,33 +131,18 @@ But the Option type is more than just checking for null. Option can be used to r
 From now on, the Option container will be referred to using the "O" shorthand.
 Some and None types can be accessed as `O.Some` and `O.None`
 
-Option provide a wide set of tools.
+The easiest way to build an `Option` is to use the some or none constructor that returns a value encapsulated in an `Option`.
 
 Example:
 ```typescript
 O.some(42)    // { _tag: 'Some', value: 42 } 
 O.none        // { _tag: 'None' }
 ```
-
-### O.map
-The map operator allows to access and transform one value from another:
-```typescript
-pipe(
-  { bar: 'hello' },
-  O.fromNullable,
-  O.map(({ bar }) => bar),
-) // { _tag: 'Some', value: 'hello' }
-```
-```typescript
-pipe(
-  undefined,
-  O.fromNullable,
-  O.map(({ bar }) => bar),
-) // { _tag: 'None' }
-```
+Option provide a wide set of tools.
 
 ### O.fromNullable
 `O.fromNullable` creates a container object tagged as None or Some, depending on the value of its argument being null/undefined or not.
+If you have a value to check it you can use `O.fromNullable`.
 
 ```typescript
 O.fromNullable('Existing')    // { _tag: 'Some', value: 'Existing' } 
@@ -161,7 +150,7 @@ O.fromNullable(null)          // { _tag: 'None' }
 ```
 
 ### O.fromPredicate
-Similar to [E.fromPredicate](#efrompredicate) but it builds an Option object instead.
+With `O.fromPredicate` you can pass your own validation function to build an Option (similar to [E.fromPredicate](#efrompredicate) but it builds an Option object instead).
 
 ```typescript
 const isUnderage = (x: { age: number }) =>
@@ -174,24 +163,40 @@ isUnderage({ age: 30 }) // { _tag: "None" }
 isUnderage({ age: 17 }) // { _tag: "Some", value: { age: 17 } }
 ```
 
-### O.fold / O.match
-Takes a (lazy) default value, a function, and an Option value, if the Option value is None the default value is returned, otherwise the function is applied to the value inside the Some and the result is returned.
+### O.fromEither
+You can build an `Option` from an `Either`. If the Either is in its left state (~ error) you get an `Option.None`,
+otherwise you get an `Option.Some` of the value in the Either
 
 ```typescript
-const isUnderage = (x: { age: number }) =>
-  pipe(
-    x,
-    O.fromPredicate(({ age }) => age < 18),
-    O.fold(
-      () => "Adult",
-      () => "Underage"
-    )
-  )
+const leftEither = Either.left('whatever')
+const rightEither = Either.right('value')
 
-isUnderage({ age: 30 }) // "Adult"
-isUnderage({ age: 15 }) // "Underage"
+const noneValue = Option.fromEither(leftEither)       // Option.None
+const optionValue = Option.fromNullable(rightEither)  // Option.Some("value")
 ```
 
+### O.map
+The map operator allows to access and transform one value to another:
+
+```typescript
+pipe(
+  { bar: 'hello' },
+  O.fromNullable,
+  O.map(({ bar }) => bar)
+); // { _tag: 'Some', value: 'hello' }
+```
+
+```typescript
+pipe(
+  undefined,
+  O.fromNullable,
+  O.map(({ bar }) => bar)
+); // { _tag: 'None' }
+```
+
+It works by performing a comparison over the `_tag` property.
+If the `_tag` is `Some`, it transforms the value using the function passed into `map`.
+However, if the `_tag` is `None`, no operation is performed. The container remains in the `None` state.
 
 ### O.flatten
 The O.flatten operator allows to traverse nested pipes to access an inner property of an object:
@@ -222,7 +227,7 @@ Without the O.flatten, the result would be:
 `{ _tag: 'Some', value: { _tag: 'None' } }`
 
 ### O.chain
-The O.chain operator implements a flatmap, merging the concepts behind  O.map and O.flatten:
+The `O.chain` operator implements a flatmap, merging the concepts behind O.map and O.flatten:
 ```typescript
 pipe(
   foo,
@@ -239,6 +244,24 @@ pipe(
 Which is very similar to the example provided for O.flatten, but more concise.
 It can be used as a logical 'AND'.  
 
+### O.fold / O.match
+It takes two functions and an Option value. The first function is the (lazy) default value and is executed if the Option is `None`,
+the second function is applied to the `Some` value if the Option is `Some` and the result is returned.
+
+```typescript
+const isUnderage = (x: { age: number }) =>
+  pipe(
+    x,
+    O.fromPredicate(({ age }) => age < 18),
+    O.fold(
+      () => 'Adult',
+      () => 'Underage'
+    )
+  );
+
+isUnderage({ age: 30 }) // "Adult"
+isUnderage({ age: 15 }) // "Underage"
+```
 
 ### O.alt
 Returns the left-most non-`None` value.  
@@ -264,9 +287,26 @@ checkCase("THISISUPPER")   // It's lowercase or uppercase
 checkCase("CamelCase")     // It's camelcase
 ```
 
+### O.toNullable / O.toUndefined
+If Your `Option` contains a value, you get it, otherwise you get `null` / `undefined`.
+
+```typescript
+const noneValue = O.none
+const someValue = O.of('value')
+
+O.toUndefined(noneValue) // undefined
+O.toUndefined(someValue) // "value"
+O.toNullable(noneValue) // null
+O.toNullable(someValue) // "value"
+```
 
 ### O.getOrElse
-Extracts the value out of the structure, if it exists. Otherwise returns the given default value.
+Extracts the value out of the structure, if it exists. Otherwise it returns the given default value.
+
+`O.getOrElse` takes a function as parameter that returns the default value for `none`.
+
+The default value must have the same type as your initial `Option`. Eg: `getOrElse` on an `Option<number>` must return a number.
+If you want to return another type, you can use `O.getOrElseW`.
 
 Example:
 ```typescript
@@ -275,8 +315,22 @@ const sillyFunction = (x?: string) => pipe(
   O.getOrElse(() => "error")
 )
 
-sillyFunction(undefined)  // error
+sillyFunction(undefined)   // error
 sillyFunction("ok")       // ok
+```
+
+### O.isNone / O.isSome
+Returns `true` if the option is `None` / `Some`, `false` otherwise.
+
+```typescript
+const noneValue = O.none 
+const someValue = O.some("value") 
+
+O.isNone(noneValue)  // true
+O.isNone(someValue)  // false
+
+O.isSome(noneValue)  // false
+O.isSome(someValue)  // true
 ```
 
 ## Task
