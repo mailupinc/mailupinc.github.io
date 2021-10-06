@@ -56,11 +56,23 @@
 # fp-ts cheatsheet
 
 ## pipe & flow
-The `pipe` operator can be used to chain a sequence of functions, from left to right.
+The `pipe` operator can be used to chain a sequence of functions, from left to right. 
 
-The return type of a preceding function in the pipeline must match the input type of the subsequent function.
+The first argument can be any arbitrary value and subsequent arguments must be functions of arity one. The return type of a preceding function in the pipeline must match the input type of the subsequent function.
 
-The `flow` operator is similar to `pipe` but the first argument is a function and not the starting value of the chain.
+In short, you can use the `pipe` operator to transform any value using a sequence of functions.
+
+The flow of control can be modelled as follows:
+```
+A -> (A->B) -> (B->C) -> (C->D)
+```
+
+The `flow` operator is similar to `pipe` but the first argument must be a function rather then any arbitrary value. The first function is also allowed to have an arity of more than one.
+
+The flow of control can be modelled as follows:
+```
+(A->B) -> (B->C) -> (C->D)
+```
 
 Example:
 ```typescript
@@ -69,10 +81,35 @@ import { pipe, flow } from 'fp-ts/lib/function'
 const add1 = (x: number) => x + 1
 const multiply2 = (x: number) => x * 2
 
+// Without pipe or flow
+multiply2(add1(1)) // 4
+
 // The following are equivalent
 pipe(1, add1, multiply2)        // 4
 pipe(1, flow(add1, multiply2))  // 4    
 flow(add1, multiply2)(1)        // 4 
+
+```
+#### When to use flow over pipe
+A general rule of thumb is when you want to avoid using an anonymous function. In Typescript, a good example of an anonymous function are callbacks.
+
+Example:
+```typescript
+import { pipe, flow } from 'fp-ts/lib/function'
+
+function concat(
+  a: number,
+  transformer: (a: number) => string,
+): [number, string] {
+  return [a, transformer(a)]
+}
+
+// With pipe
+concat(1, (n) => pipe(n, add1, multiply2, toString)) // [1, '4']
+
+// With flow
+concat(1, flow(add1, multiply2, toString)) // [1, '4']
+
 ```
 
 ## Options
