@@ -20,12 +20,14 @@
     - [O.isNone / O.isSome](#oisnone--oissome)
   - [Task](#task)
   - [Either](#either)
-    - [E.map](#emap)
-    - [E.tryCatch](#etrycatch)
     - [E.fromNullable](#efromnullable)
     - [E.fromOption](#efromoption)
     - [E.fromPredicate](#efrompredicate)
+    - [E.map / E.mapLeft / E.bimap](#emap--emapleft--ebimap)
+    - [E.tryCatch](#etrycatch)
     - [E.fold / E.match](#efold--ematch)
+    - [E.chain / E.chainFirst](#echain--echainfirst)
+    - [E.getOrElse](#egetorelse)
   - [TaskEither](#taskeither)
     - [TE.tryCatch](#tetrycatch)
     - [TE.map](#temap)
@@ -378,8 +380,8 @@ Much like Option, where it is `Some` or `None`, the Either type is either `Right
 type Either<E, A> = Left<E> | Right<A>
 ```
 
-Eithers are very useful for catching error scenarios in FP, and have a clue as to why our program has derailed. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking.  
-We need the Eithers because we cannot break pipelines by throwing errors.    
+Eithers are very useful for catching error scenarios in FP, and have a clue as to why our program has derailed. With an analogy, they can be considered as the try-catch construct equivalent of functional programming, but with type safe checking. So when we manipulate an Either, if we enter the left branch, we most of the time won't carry out further manipulations, and just return the Error context that is encapsulated in the left branch (it is still accessible tho, through different helpers). If we are in the right branch, we'll keep on manipulating the value and passing it through the right branch.
+We need the Eithers because we cannot break pipelines by throwing errors.
 Either is great for casual errors like validation as well as more serious, errors like missing files or broken sockets.
 It also captures logical disjunction (a.k.a ||) in a type.
 
@@ -395,9 +397,134 @@ passwordMinLenght('test', 1)    // {_tag: "Right", right: "test"}
 passwordMinLenght('test', 8)    // {_tag: "Left", left: Error}
 ```
 
-### E.map
-Similar to `O.map` but applied to an Either container.
+The easiest way to build an `Either` is to use the right or left constructor that returns a value encapsulated as a right or left `Either`.
+From now on, the Either container will be referred to using the "E" shorthand.
 
+```typescript
+const leftValue = E.left("value"); // -> you are on the left branch
+const rightValue = E.right("value"); // -> you are on the right branch
+```
+
+But you have also a `fromNullable`, `fromOption` and `fromPredicate` helpers.
+### E.fromNullable
+Construct a new Either from a nullable object. If the value is `null` or `undefined` you need to provide your Either what to put in the left track,
+otherwise it will put your value in the right track.
+
+```typescript
+pipe(
+  null,
+  E.fromNullable(new Error('The object is null')),
+)   // {_tag: "Left", left: Error}
+
+pipe(
+  42,
+  E.fromNullable(new Error('The object is null')),
+)   // {_tag: "Right", right: 42}
+```
+
+### E.fromOption
+Construct a new Either from an Option.
+It works exactly as the fromNullable as we've seen an Option could represent a nullable value.
+
+```typescript
+pipe(
+  O.some(42),
+  E.fromOption(() => 'error')
+)   // {_tag: "Right", right: 42}
+
+pipe(
+  O.none,
+  E.fromOption(() => 'error')
+)   // {_tag: "Left", left: "error"}
+```
+
+### E.fromPredicate
+Construct a new Either based on the given predicate.
+You have to first pass a function checking your value is correct (should I go right or left track).
+This function can be a simple function returning a boolean, or a type guard. And then pass a value for the left track.
+
+```typescript
+const check = (
+  E.fromPredicate(
+    (n: number) => n > 0,
+    () => 'error'
+  )
+)
+
+check(42) // {_tag: "Right", right: 42}
+check(-1) // {_tag: "Left", left: "error"}
+```
+
+```typescript
+type EvenNumber = number;
+const isEven = (num: number) => num % 2 === 0;
+const isEvenTypeGuard = (num: number): num is EvenNumber => num % 2 === 0;
+const eitherBuilder = E.fromPredicate(
+  isEven, // here we could use isEvenTypeGuard to infer the number type and have an E.Either<E, EvenNumber>
+  (number) => `${number} is an odd number`
+);
+
+// Here when you use eitherBuilder you get something with the type E.Either<string, number>
+const leftValue = eitherBuilder(3);   // {_tag: "Left", left: '3 is an odd number')
+const rightValue = eitherBuilder(4);  // {_tag: "Right", right: 4}
+```
+
+### E.map / E.mapLeft / E.bimap
+Similar to `O.map` but applied to an Either container.
+`map` will only transform your data if you are in the right branch.
+
+If you want to map on the left branch, you can use `mapLeft`.
+``` typescript
+const doubleIfEven = (n: number) => n % 2 === 0 ? 2 * n : n
+
+const rightValue = E.right(2);
+const leftValue = E.left(2);
+
+pipe(
+  rightValue,
+  E.map(doubleIfEven)
+) // {_tag: "Right", right: 4}
+
+pipe(
+  rightValue,
+  E.map(doubleIfEven)
+) // {_tag: "Right", right: 4}
+
+pipe(
+  leftValue,
+  E.map(doubleIfEven)
+) // {_tag: "Left", left: 2}
+
+pipe(
+  leftValue,
+  E.mapLeft(doubleIfEven)
+) // {_tag: "Left", left: 4}
+```
+
+Eventually, there is also a `bimap` helper mapping the first function to the left branch,
+and the second function to the right branch
+```typescript
+const evenErrorMessage = (n: number) => {
+  if (n % 2 === 0) return `${n} is even but in Error State`;
+
+  return `${n} is odd and in Error State`;
+};
+
+const doubleOrError = E.bimap(evenErrorMessage, doubleIfEven);
+
+const rightValue = E.right(2);
+const leftValue = E.left(3);
+
+pipe(
+  rightValue,
+  E.bimap(evenErrorMessage, doubleIfEven)
+); // {_tag: "Right", right: 4}
+
+pipe(
+  leftValue,
+  E.bimap(evenErrorMessage, doubleIfEven)
+); // {_tag: "Left", left: "3 is odd and in Error State"
+```
 
 ### E.tryCatch
 Constructs a new Either from a function that might throw.
@@ -419,53 +546,9 @@ safeFunction(20)  // {_tag: "Right", right: 20}
 safeFunction(2)   // {_tag: "Left", left: Error}
 ```
 
-### E.fromNullable
-Construct a new Either from a nullable object.
-
-```typescript
-pipe(
-  null,
-  E.fromNullable(new Error('The object is null')),
-)   // {_tag: "Left", left: Error}
-
-pipe(
-  42,
-  E.fromNullable(new Error('The object is null')),
-)   // {_tag: "Right", right: 42}
-```
-
-### E.fromOption
-Construct a new Either from an Option.
-
-```typescript
-pipe(
-  O.some(42),
-  E.fromOption(() => 'error')
-)   // {_tag: "Right", right: 42}
-
-pipe(
-  O.none,
-  E.fromOption(() => 'error')
-)   // {_tag: "Left", left: "error"}
-```
-
-### E.fromPredicate
-Construct a new Either based on the given predicate.
-
-```typescript
-const check = (
-  E.fromPredicate(
-    (n: number) => n > 0,
-    () => 'error'
-  )
-)
-
-check(42) // {_tag: "Right", right: 42}
-check(-1) // {_tag: "Left", left: "error"}
-```
-
 ### E.fold / E.match
-Takes two functions and an Either value, if the value is a `Left` the inner value is applied to the first function, if the value is a `Right` the inner value is applied to the second function.
+Takes two functions and an Either value, if the value is a `Left` the inner value is applied to the first function, 
+if the value is a `Right` the inner value is applied to the second function.
 
 Example:
 ```typescript
@@ -483,6 +566,73 @@ pipe(
 ) // Error -1 
 ```
 
+### E.chain / E.chainFirst
+`chain` will only transform your data if you are in the right branch.
+Otherwise, it will return your Either as it was. To "flatten" your Either, there are two cases:
+
+1. you chain a function with the same left type (returning `Either<E, *>`). 
+You can use the `chain` method and it will return an `Either<E, *>` (what is returned by your chained function)
+
+2. you chain a function with a different left type (returning `Either<D, *>`).
+To flatten your Either, you will have to combine both error types.
+You have to use the `chainW` method, where `W` means widen, as you extend the error type. It will return an `Either<E | D, *>`
+```typescript
+  const doubleIfEven = (n: number): E.Either<string, number> =>
+    n % 2 === 0 ? E.right(2 * n) : E.left(`${n} is not Even`);
+
+  pipe(
+    E.right(2),
+    E.chain(doubleIfEven)
+  );  // {_tag: "Right", right: 4}
+
+  pipe(
+    E.right(3),
+    E.chain(doubleIfEven)
+  );  // {_tag: "Left", left: "3 is not Even"}
+
+  pipe(
+    E.left("Initial Error"),
+    E.chain(doubleIfEven)
+  );  // {_tag: "Left", left: "Initial Error"}
+  
+  pipe(
+    E.left(false),
+    E.chainW(doubleIfEven)
+  );  // {_tag: "Left", left: false}
+```
+
+If you want to use your data but return it unaltered to the rest of your pipeline (like some kind of side effect),
+but still fail if something wrong happened, you can use the `chainFirst` (or `chainFirstW`) combinator:
+```typescript
+const doubleAndTellIfEven = (n: number): E.Either<NotEvenError, string> =>
+  n % 2 === 0
+    ? E.right(`${2 * n} is an even number!`)
+    : E.left(notEvenError(n));
+
+pipe(
+  E.right(2),
+  E.chainFirstW(doubleAndTellIfEven), // this goes right branch, but we drop the string returned and pass the initial value
+  E.getOrElse(() => 0)                // here we get the original 2
+);
+
+pipe(
+  E.right(3),
+  E.chainFirstW(doubleAndTellIfEven), // this goes left branch due to failed validation
+  E.getOrElse(() => 0)                // here we get default 0
+);
+```
+
+### E.getOrElse
+The `getOrElse` destructor and its `getOrElseW` version work exactly as the one from `Option`.
+You have to pass it what to return if you are in the left branch.
+
+```typescript
+const leftValue = E.left("Division by Zero!");
+const rightValue = E.right(10);
+
+E.getOrElse(() => 0)(leftValue);  // 0
+E.getOrElse(() => 0)(rightValue); // 10
+```
 
 
 ## TaskEither
