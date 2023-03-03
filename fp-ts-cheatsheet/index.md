@@ -17,6 +17,7 @@
     - [O.alt](#oalt)
     - [O.toNullable / O.toUndefined](#otonullable--otoundefined)
     - [O.getOrElse](#ogetorelse)
+    - [O.getOrElseW](#ogetorelsew)
     - [O.isNone / O.isSome](#oisnone--oissome)
   - [Task](#task)
   - [Either](#either)
