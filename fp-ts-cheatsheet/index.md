@@ -321,6 +321,17 @@ sillyFunction(undefined)   // error
 sillyFunction("ok")       // ok
 ```
 
+### O.getOrElseW
+Similar to `O.getOrElse`, but it is less strict, in the sense that the default value can have a different type of the initial `Option`.
+
+Example:
+```typescript
+const sillyFunction = (x?: string) => pipe(
+  O.fromNullable(x),
+  O.getOrElseW(() => 42) // returns number instead of string
+)
+```
+
 ### O.isNone / O.isSome
 Returns `true` if the option is `None` / `Some`, `false` otherwise.
 
